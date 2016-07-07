@@ -674,9 +674,63 @@ const char* lookup(const char* path)
  */
 bool parse(const char* line, char* abs_path, char* query)
 {
-    // TODO
-    error(501);
-    return false;
+    
+    // REF: "method request-target HTTP-version\r\n"
+    
+    // Look for GET; trigger 405 and return false if not
+    if (strstr(line, "GET") == NULL) {
+        error(405);
+        return false;
+    }
+
+    // Use strstr to pull target from line
+    // Find spaces (ASCII 32) in line to clarify target start and end locations
+    char* first_space_ptr = strchr(line, 32);
+    char* second_space_ptr = strrchr(line, 32);
+    
+    // Define full target with pointer math
+    char* target = malloc(strlen(line));
+    strncpy(target, first_space_ptr, second_space_ptr - first_space_ptr);
+
+    // Add null pointer to target
+    target[second_space_ptr - first_space_ptr - 1] = '\0';
+
+    // Look for / in target; trigger 501 and return false if not
+    if (target[0] != "/") {
+        error(501);
+        return false;
+    }
+    
+    // Look for errant "; trigger 400 and return false if found
+    if (strstr(target, "\"") != NULL) {
+        error(400);
+        return false;
+    }
+    
+    // Look for ? in target, split target into path and query if necessary
+    char* question_ptr = strstr(target, "?");
+    
+    if (question_ptr == NULL) {
+        abs_path = target;
+        return true;
+    }
+    else {
+        
+        // Define path with pointer math
+        char* path = malloc(strlen(line));
+        strncpy(path, target, question_ptr - target);
+
+        // Add null pointer to path
+        path[question_ptr - target - 1] = '\0';
+        
+        // Assign path and target
+        abs_path = path;
+        query = question_ptr + 1;
+        return true;
+    }
+    
+    // TODO: malloc() any pointer that's being returned, so it doesn't get released when the function call is done...
+    
 }
 
 /**
