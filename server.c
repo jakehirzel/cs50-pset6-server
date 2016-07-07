@@ -698,12 +698,14 @@ bool parse(const char* line, char* abs_path, char* query)
     // Look for / in target; trigger 501 and return false if not
     if (target[0] != "/") {
         error(501);
+        free(target);
         return false;
     }
     
     // Look for errant "; trigger 400 and return false if found
     if (strstr(target, "\"") != NULL) {
         error(400);
+        free(target);
         return false;
     }
     
@@ -711,7 +713,8 @@ bool parse(const char* line, char* abs_path, char* query)
     char* question_ptr = strstr(target, "?");
     
     if (question_ptr == NULL) {
-        abs_path = target;
+        *abs_path = *target;
+        free(target);
         return true;
     }
     else {
@@ -724,13 +727,12 @@ bool parse(const char* line, char* abs_path, char* query)
         path[question_ptr - target - 1] = '\0';
         
         // Assign path and target
-        abs_path = path;
-        query = question_ptr + 1;
+        *abs_path = *path;
+        *query = *question_ptr + 1;
+        free(target);
+        free(path);
         return true;
     }
-    
-    // TODO: malloc() any pointer that's being returned, so it doesn't get released when the function call is done...
-    
 }
 
 /**
