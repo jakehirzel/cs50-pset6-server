@@ -708,12 +708,20 @@ bool parse(const char* line, char* abs_path, char* query)
         return false;
     }
     
+    // TODO: Something is wrong with target -- 
+    
     // Define full target
     char* target = malloc(strlen(line));
-    strncpy(target, first_space_ptr, second_space_ptr - first_space_ptr);
-
+    strncpy(target, first_space_ptr + 1, second_space_ptr - first_space_ptr);
+    
     // Add null terminator to target
     target[second_space_ptr - first_space_ptr - 1] = '\0';
+    
+    // Look for spaces in target; trigger 400 and return false if found
+    if (strchr(target, 32) != NULL) {
+        error(400);
+        return false;
+    }
 
     // Look for / in target; trigger 501 and return false if not
     if (target[0] != '/') {
@@ -728,7 +736,6 @@ bool parse(const char* line, char* abs_path, char* query)
     if (quote_ptr != NULL) {
         error(400);
         free(target);
-        // free(http_version);
         return false;
     }
     
