@@ -696,7 +696,19 @@ bool parse(const char* line, char* abs_path, char* query)
     char* first_space_ptr = strchr(line, 32);
     char* second_space_ptr = strrchr(line, 32);
     
-    // Define full target with pointer math
+    // 400 any requests with no spaces
+    if (first_space_ptr == NULL || second_space_ptr == NULL) {
+        error(400);
+        return false;
+    }
+    
+    // If not HTTP/1.1, trigger 505 and return false
+    if (strcasecmp(second_space_ptr, " HTTP/1.1\r\n") != 0) {
+        error(505);
+        return false;
+    }
+    
+    // Define full target
     char* target = malloc(strlen(line));
     strncpy(target, first_space_ptr, second_space_ptr - first_space_ptr);
 
@@ -710,11 +722,13 @@ bool parse(const char* line, char* abs_path, char* query)
         return false;
     }
     
-    // Look for errant " (ASCII 34); trigger 400 and return false if found
-    // TODO: ?????
-    if (strchr(target, 34) == NULL) {
+    // Look for errant quotation marks; trigger 400 and return false if found
+    // TODO: Debug this...
+    char* quote_ptr = strstr(target, "\"");
+    if (quote_ptr != NULL) {
         error(400);
         free(target);
+        // free(http_version);
         return false;
     }
     
@@ -742,8 +756,6 @@ bool parse(const char* line, char* abs_path, char* query)
         free(path);
         return true;
     }
-    
-    // TODO: implement HTTP/1.1 check
 }
 
 /**
