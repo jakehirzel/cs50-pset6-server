@@ -677,8 +677,16 @@ bool parse(const char* line, char* abs_path, char* query)
     
     // REF: "method request-target HTTP-version\r\n"
     
-    // Look for GET; trigger 405 and return false if not
-    if (strstr(line, "GET") == NULL) {
+    // Look for "GET "; trigger 405 and return false if not
+
+    // Create temporary method string
+    char method[] = "0000";
+    
+    // Copy in first four characters of line
+    strncpy(method, line, 4);
+    
+    // Check for "GET "
+    if (strcmp(method, "GET ") != 0) {
         error(405);
         return false;
     }
@@ -692,18 +700,19 @@ bool parse(const char* line, char* abs_path, char* query)
     char* target = malloc(strlen(line));
     strncpy(target, first_space_ptr, second_space_ptr - first_space_ptr);
 
-    // Add null pointer to target
+    // Add null terminator to target
     target[second_space_ptr - first_space_ptr - 1] = '\0';
 
     // Look for / in target; trigger 501 and return false if not
-    if (target[0] != "/") {
+    if (target[0] != '/') {
         error(501);
         free(target);
         return false;
     }
     
-    // Look for errant "; trigger 400 and return false if found
-    if (strstr(target, "\"") != NULL) {
+    // Look for errant " (ASCII 34); trigger 400 and return false if found
+    // TODO: ?????
+    if (strchr(target, 34) == NULL) {
         error(400);
         free(target);
         return false;
@@ -723,7 +732,7 @@ bool parse(const char* line, char* abs_path, char* query)
         char* path = malloc(strlen(line));
         strncpy(path, target, question_ptr - target);
 
-        // Add null pointer to path
+        // Add null terminator to path
         path[question_ptr - target - 1] = '\0';
         
         // Assign path and target
@@ -733,6 +742,8 @@ bool parse(const char* line, char* abs_path, char* query)
         free(path);
         return true;
     }
+    
+    // TODO: implement HTTP/1.1 check
 }
 
 /**
