@@ -609,8 +609,24 @@ void list(const char* path)
  */
 bool load(FILE* file, BYTE** content, size_t* length)
 {
-    // TODO
-    return false;
+
+    // Ascertain and assign file size
+    *length = fseek(file, 0L, SEEK_END);
+    rewind(file);
+
+    // Create pointer to store file contents
+    BYTE* file_contents = malloc(*length);
+    
+    // Read file to file_contents
+    if (fread(file_contents, sizeof(BYTE), *length, file) == *length) {
+        // Assign file_contents pointer to *content
+        *content = file_contents;
+        return true;
+    }
+    else {
+        return false;
+    }
+
 }
 
 /**
@@ -691,7 +707,6 @@ bool parse(const char* line, char* abs_path, char* query)
         return false;
     }
 
-    // Use strstr to pull target from line
     // Find spaces (ASCII 32) in line to clarify target start and end locations
     char* first_space_ptr = strchr(line, 32);
     char* second_space_ptr = strrchr(line, 32);
@@ -707,8 +722,6 @@ bool parse(const char* line, char* abs_path, char* query)
         error(505);
         return false;
     }
-    
-    // TODO: Something is wrong with target -- 
     
     // Define full target
     char* target = malloc(strlen(line));
@@ -731,7 +744,6 @@ bool parse(const char* line, char* abs_path, char* query)
     }
     
     // Look for errant quotation marks; trigger 400 and return false if found
-    // TODO: Debug this...
     char* quote_ptr = strstr(target, "\"");
     if (quote_ptr != NULL) {
         error(400);
