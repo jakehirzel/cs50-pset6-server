@@ -186,6 +186,7 @@ int main(int argc, char* argv[])
                 if (parse(line, abs_path, query))
                 {
                     // URL-decode absolute-path
+                    parse(line, abs_path, query);
                     char* p = urldecode(abs_path);
                     if (p == NULL)
                     {
@@ -444,8 +445,36 @@ char* htmlspecialchars(const char* s)
  */
 char* indexes(const char* path)
 {
-    // TODO
-    return NULL;
+    // If path contains a . (ASCII 46) return NULL
+    if (strchr(path, 46) != NULL) {
+        return NULL;
+    }
+    
+    // Make a new string to hold the edited path with room for /, file, and \0
+    char* full_path = malloc(strlen(path) + 12);
+    
+    // strcat path to full_path adding / at end if needed
+    if (path[strlen(path) - 1] == '/') {
+        full_path = strcat(full_path, path);
+    }
+    else {
+        full_path = strcat(full_path, "/");
+        full_path = strcat(full_path, path);
+    }
+
+    // Look for index.html
+    if (access("/index.html", R_OK) == 0) {
+        // Append page to path
+        full_path = strcat(full_path, "index.html");
+    }
+    
+    // else (access("/index.php", R_OK) == 0) {
+    //     // Append page to path
+    //     full_path = strcat(full_path, "index.php");
+    // }
+    
+    return full_path;
+
 }
 
 /**
@@ -610,23 +639,24 @@ void list(const char* path)
 bool load(FILE* file, BYTE** content, size_t* length)
 {
 
-    // Ascertain and assign file size
-    *length = fseek(file, 0L, SEEK_END);
-    rewind(file);
+    // // Ascertain and assign file size
+    // *length = fseek(file, 0L, SEEK_END);
+    // rewind(file);
 
-    // Create pointer to store file contents
-    BYTE* file_contents = malloc(*length);
+    // // Create pointer to store file contents
+    // BYTE* file_contents = malloc(*length);
     
-    // Read file to file_contents
-    if (fread(file_contents, sizeof(BYTE), *length, file) == *length) {
-        // Assign file_contents pointer to *content
-        *content = file_contents;
-        return true;
-    }
-    else {
-        return false;
-    }
+    // // Read file to file_contents
+    // if (fread(file_contents, sizeof(BYTE), *length, file) == *length) {
+    //     // Assign file_contents pointer to *content
+    //     *content = file_contents;
+    //     return true;
+    // }
+    // else {
+    //     return false;
+    // }
 
+    return false;
 }
 
 /**
@@ -634,8 +664,8 @@ bool load(FILE* file, BYTE** content, size_t* length)
  */
 const char* lookup(const char* path)
 {
-    // use strrchr() to find last . in path
-    char* dot_ptr = strrchr(path, '.');
+    // use strrchr() to find last . (ASCII 46) in path
+    char* dot_ptr = strrchr(path, 46);
     printf("dot_ptr = %s\n", dot_ptr);
     
     // create mime
@@ -736,7 +766,7 @@ bool parse(const char* line, char* abs_path, char* query)
         return false;
     }
 
-    // Look for / in target; trigger 501 and return false if not
+    // Look for / at start of target; trigger 501 and return false if not
     if (target[0] != '/') {
         error(501);
         free(target);
@@ -755,8 +785,9 @@ bool parse(const char* line, char* abs_path, char* query)
     char* question_ptr = strstr(target, "?");
     
     if (question_ptr == NULL) {
-        *abs_path = *target;
-        free(target);
+        // abs_path = target;
+        strcpy(abs_path, target);
+        // free(target);
         return true;
     }
     else {
@@ -769,10 +800,13 @@ bool parse(const char* line, char* abs_path, char* query)
         path[question_ptr - target - 1] = '\0';
         
         // Assign path and target
-        *abs_path = *path;
-        *query = *question_ptr + 1;
-        free(target);
-        free(path);
+        strcpy(abs_path, path);
+        // abs_path = path;
+        *question_ptr = *question_ptr + 1;
+        strcpy(query, question_ptr);
+        // query = question_ptr;
+        // free(target);
+        // free(path);
         return true;
     }
 }
