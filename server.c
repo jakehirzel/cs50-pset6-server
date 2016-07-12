@@ -186,7 +186,6 @@ int main(int argc, char* argv[])
                 if (parse(line, abs_path, query))
                 {
                     // URL-decode absolute-path
-                    parse(line, abs_path, query);
                     char* p = urldecode(abs_path);
                     if (p == NULL)
                     {
@@ -639,22 +638,22 @@ void list(const char* path)
 bool load(FILE* file, BYTE** content, size_t* length)
 {
 
-    // // Ascertain and assign file size
-    // *length = fseek(file, 0L, SEEK_END);
-    // rewind(file);
+    // Ascertain and assign file size
+    *length = fseek(file, 0L, SEEK_END);
+    rewind(file);
 
-    // // Create pointer to store file contents
-    // BYTE* file_contents = malloc(*length);
+    // Create pointer to store file contents
+    BYTE* file_contents = malloc(*length);
     
-    // // Read file to file_contents
-    // if (fread(file_contents, sizeof(BYTE), *length, file) == *length) {
-    //     // Assign file_contents pointer to *content
-    //     *content = file_contents;
-    //     return true;
-    // }
-    // else {
-    //     return false;
-    // }
+    // Read file to file_contents
+    if (fread(file_contents, sizeof(BYTE), *length, file) == *length) {
+        // Assign file_contents pointer to *content
+        *content = file_contents;
+        return true;
+    }
+    else {
+        return false;
+    }
 
     return false;
 }
@@ -718,7 +717,7 @@ const char* lookup(const char* path)
  * and its query string at query, both of which are assumed
  * to be at least of length LimitRequestLine + 1.
  */
-bool parse(const char* line, char* abs_path, char* query)
+bool parse(const char* line, char* path, char* query)
 {
     
     // REF: "method request-target HTTP-version\r\n"
@@ -754,7 +753,8 @@ bool parse(const char* line, char* abs_path, char* query)
     }
     
     // Define full target
-    char* target = malloc(strlen(line));
+    // char* target = malloc(strlen(line));
+    char target[LimitRequestLine + 1];
     strncpy(target, first_space_ptr + 1, second_space_ptr - first_space_ptr);
     
     // Add null terminator to target
@@ -785,28 +785,28 @@ bool parse(const char* line, char* abs_path, char* query)
     char* question_ptr = strstr(target, "?");
     
     if (question_ptr == NULL) {
-        // abs_path = target;
-        strcpy(abs_path, target);
+        // path = target;
+        strcpy(path, target);
         // free(target);
         return true;
     }
     else {
         
-        // Define path with pointer math
-        char* path = malloc(strlen(line));
-        strncpy(path, target, question_ptr - target);
+        // Define path_loc with pointer math
+        char* path_loc = malloc(strlen(line));
+        strncpy(path_loc, target, question_ptr - target);
 
         // Add null terminator to path
-        path[question_ptr - target - 1] = '\0';
+        path_loc[question_ptr - target - 1] = '\0';
         
         // Assign path and target
-        strcpy(abs_path, path);
-        // abs_path = path;
+        // strcpy(path, path_loc);
+        // path = path_loc;
         *question_ptr = *question_ptr + 1;
-        strcpy(query, question_ptr);
+        // strcpy(query, question_ptr);
         // query = question_ptr;
         // free(target);
-        // free(path);
+        // free(path_loc);
         return true;
     }
 }
