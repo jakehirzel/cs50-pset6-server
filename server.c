@@ -460,9 +460,11 @@ char* indexes(const char* path)
         full_path = strcat(full_path, "/");
         full_path = strcat(full_path, path);
     }
+    
+    // Add full path to below...
 
     // Look for index.html
-    if (access("/index.html", R_OK) == 0) {
+    if (access("index.html", R_OK) == 0) {
         // Append page to path
         full_path = strcat(full_path, "index.html");
     }
@@ -639,7 +641,8 @@ bool load(FILE* file, BYTE** content, size_t* length)
 {
 
     // Ascertain and assign file size
-    *length = fseek(file, 0L, SEEK_END);
+    fseek(file, 0L, SEEK_END);
+    *length = ftell(file);
     rewind(file);
 
     // Create pointer to store file contents
@@ -703,13 +706,17 @@ const char* lookup(const char* path)
     {
        strcpy(mime, "image/png");
     }
+    else {
+        
+        // If none of the above
+        return NULL;
+        
+    }
     
     // create and return mime_ptr
     const char* mime_ptr = mime;
     return mime_ptr;
     
-    // if none
-    return NULL;
 }
 
 /**
@@ -753,8 +760,8 @@ bool parse(const char* line, char* path, char* query)
     }
     
     // Define full target
-    // char* target = malloc(strlen(line));
-    char target[LimitRequestLine + 1];
+    char* target = malloc(strlen(line));
+    // char target[LimitRequestLine + 1];
     strncpy(target, first_space_ptr + 1, second_space_ptr - first_space_ptr);
     
     // Add null terminator to target
@@ -787,7 +794,7 @@ bool parse(const char* line, char* path, char* query)
     if (question_ptr == NULL) {
         // path = target;
         strcpy(path, target);
-        // free(target);
+        free(target);
         return true;
     }
     else {
