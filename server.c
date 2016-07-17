@@ -461,21 +461,35 @@ char* indexes(const char* path)
         full_path = strcat(full_path, path);
     }
     
-    // Add full path to below...
+    // Create strings to potential index pages
+    char* index_html = malloc(strlen(full_path) + 12);
+    index_html = strcat(full_path, "index.html\0");
+
+    char* index_php = malloc(strlen(full_path) + 12);
+    index_php = strcat(full_path, "index.php\0");
 
     // Look for index.html
-    if (access("index.html", R_OK) == 0) {
-        // Append page to path
-        full_path = strcat(full_path, "index.html");
+    if (access(index_html, R_OK) == 0) {
+        // Set full_path to include index and return
+        full_path = index_html;
+        free(index_html);
+        free(index_php);
+        free(full_path);
+        return full_path;
     }
     
-    // else (access("/index.php", R_OK) == 0) {
-    //     // Append page to path
-    //     full_path = strcat(full_path, "index.php");
-    // }
+    else if (access(index_php, R_OK) == 0) {
+        // Set full_path to include index and return
+        full_path = index_php;
+        free(index_html);
+        free(index_php);
+        free(full_path);
+        return full_path;
+    }
     
-    return full_path;
-
+    else {
+        return NULL;
+    }
 }
 
 /**
@@ -674,7 +688,10 @@ const char* lookup(const char* path)
     char mime[16] = {0};
 
     // check for file extensions and strcopy MIME types
-    if (strcasecmp(dot_ptr, ".css") == 0)
+    if (dot_ptr == NULL) {
+        return NULL;
+    }
+    else if (strcasecmp(dot_ptr, ".css") == 0)
     {
         strcpy(mime, "text/css");
     }
@@ -770,6 +787,7 @@ bool parse(const char* line, char* path, char* query)
     // Look for spaces in target; trigger 400 and return false if found
     if (strchr(target, 32) != NULL) {
         error(400);
+        free(target);
         return false;
     }
 
@@ -794,12 +812,13 @@ bool parse(const char* line, char* path, char* query)
     if (question_ptr == NULL) {
         // path = target;
         strcpy(path, target);
+        printf("%s\n", path);
         free(target);
         return true;
     }
     else {
         
-        // Define path_loc with pointer math
+        // Define path_loc with pointer arithmatic
         char* path_loc = malloc(strlen(line));
         strncpy(path_loc, target, question_ptr - target);
 
@@ -807,13 +826,11 @@ bool parse(const char* line, char* path, char* query)
         path_loc[question_ptr - target - 1] = '\0';
         
         // Assign path and target
-        // strcpy(path, path_loc);
-        // path = path_loc;
+        strcpy(path, path_loc);
         *question_ptr = *question_ptr + 1;
-        // strcpy(query, question_ptr);
-        // query = question_ptr;
-        // free(target);
-        // free(path_loc);
+        strcpy(query, question_ptr);
+        free(target);
+        free(path_loc);
         return true;
     }
 }
