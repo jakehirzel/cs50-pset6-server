@@ -823,11 +823,11 @@ bool parse(const char* line, char* path, char* query)
         strncpy(path_loc, target, question_ptr - target);
 
         // Add null terminator to path
-        path_loc[question_ptr - target - 1] = '\0';
+        path_loc[question_ptr - target] = '\0';
         
         // Assign path and target
         strcpy(path, path_loc);
-        *question_ptr = *question_ptr + 1;
+        question_ptr = question_ptr + 1;
         strcpy(query, question_ptr);
         free(target);
         free(path_loc);
