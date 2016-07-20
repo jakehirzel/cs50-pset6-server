@@ -653,26 +653,54 @@ void list(const char* path)
  */
 bool load(FILE* file, BYTE** content, size_t* length)
 {
-
-    // Ascertain and assign file size
-    fseek(file, 0L, SEEK_END);
-    *length = ftell(file);
-    rewind(file);
-
+    
+    // ftell does not work with popen pipes, so we need to realloc while fread-ing
+    
+    // // Ascertain and assign file size
+    // fseek(file, 0L, SEEK_END);
+    // *length = ftell(file);
+    // rewind(file);
+    
+    // Create temporary variable to buffer the reads
+    BYTE read_byte_buffer[2] = {0};
+    
     // Create pointer to store file contents
-    BYTE* file_contents = malloc(*length);
+    BYTE* file_contents = calloc(2, 1);
+    
+    // Set length to 1
+    *length = 1;
+    
+    // Need to loop better here -- currently overwriting the first index on every loop...
     
     // Read file to file_contents
-    if (fread(file_contents, sizeof(BYTE), *length, file) == *length) {
+    while (fread(&read_byte_buffer, sizeof(BYTE), 1, file) == 1) {
+        
+        // Null terminate read_byte_buffer
+        read_byte_buffer[1] = '\0';
+        
+        // Add buffer to contents
+        strcat(file_contents, read_byte_buffer);
+        
+        // Extend file_contents via realloc
+        file_contents = realloc(file_contents, *length + 1 + 1);
+        
+        // Add to length for each iteration
+        *length = *length + 1;
+        
+    }
+    
+    if (file_contents != NULL) {
         // Assign file_contents pointer to *content
         *content = file_contents;
+        // free(file_contents);
         return true;
     }
+    
     else {
+        // free(file_contents);
         return false;
     }
-
-    return false;
+    
 }
 
 /**
