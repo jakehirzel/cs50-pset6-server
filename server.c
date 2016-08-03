@@ -663,7 +663,7 @@ bool load(FILE* file, BYTE** content, size_t* length)
     // Create pointer to store file contents
     BYTE* file_contents = calloc(1, 1);
     
-    // Creade index counter
+    // Create index counter
     int index = 0;
     
     // Read file to file_contents
@@ -676,7 +676,7 @@ bool load(FILE* file, BYTE** content, size_t* length)
         index++;
 
         // Extend file_contents via realloc
-        file_contents = realloc(file_contents, index + 2);
+        file_contents = realloc(file_contents, index + 1);
         
     }
     
