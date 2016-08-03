@@ -450,7 +450,7 @@ char* indexes(const char* path)
     }
     
     // Make a new string to hold the edited path with room for /, file, and \0
-    char* full_path = malloc(strlen(path) + 12);
+    char* full_path = calloc(strlen(path) + 12, 1);
     
     // strcat path to full_path adding / at end if needed
     if (path[strlen(path) - 1] == '/') {
@@ -472,22 +472,25 @@ char* indexes(const char* path)
     if (access(index_html, R_OK) == 0) {
         // Set full_path to include index and return
         full_path = index_html;
-        free(index_html);
-        free(index_php);
-        free(full_path);
+        // free(index_html);
+        // free(index_php);
+        // free(full_path);
         return full_path;
     }
     
     else if (access(index_php, R_OK) == 0) {
         // Set full_path to include index and return
         full_path = index_php;
-        free(index_html);
-        free(index_php);
-        free(full_path);
+        // free(index_html);
+        // free(index_php);
+        // free(full_path);
         return full_path;
     }
     
     else {
+        // free(index_html);
+        // free(index_php);
+        // free(full_path);
         return NULL;
     }
 }
@@ -654,38 +657,32 @@ void list(const char* path)
 bool load(FILE* file, BYTE** content, size_t* length)
 {
     
-    // ftell does not work with popen pipes, so we need to realloc while fread-ing
-    
-    // // Ascertain and assign file size
-    // fseek(file, 0L, SEEK_END);
-    // *length = ftell(file);
-    // rewind(file);
-    
     // Create temporary variable to buffer the reads
-    BYTE read_byte_buffer[2] = {0};
+    BYTE read_byte_buffer = 0;
     
     // Create pointer to store file contents
-    BYTE* file_contents = calloc(2, 1);
+    BYTE* file_contents = calloc(1, 1);
     
-    // Set length to 1
-    *length = 1;
+    // Creade index counter
+    int index = 0;
     
-    // Need to loop better here -- currently overwriting the first index on every loop...
+    // The strcat below doesn't work with non-text files (i.e. jpg...); maybe sprintf?
     
     // Read file to file_contents
     while (fread(&read_byte_buffer, sizeof(BYTE), 1, file) == 1) {
         
         // Null terminate read_byte_buffer
-        read_byte_buffer[1] = '\0';
+        // read_byte_buffer[1] = '\0';
         
         // Add buffer to contents
-        strcat(file_contents, read_byte_buffer);
+        // strcat(file_contents, read_byte_buffer);
+        *(file_contents + index) = read_byte_buffer;
         
+        // Increment the index
+        index++;
+
         // Extend file_contents via realloc
-        file_contents = realloc(file_contents, *length + 1 + 1);
-        
-        // Add to length for each iteration
-        *length = *length + 1;
+        file_contents = realloc(file_contents, index + 2);
         
     }
     
@@ -693,6 +690,8 @@ bool load(FILE* file, BYTE** content, size_t* length)
         // Assign file_contents pointer to *content
         *content = file_contents;
         // free(file_contents);
+        // Assign index + 1 to length
+        *length = index + 1;
         return true;
     }
     
@@ -713,7 +712,8 @@ const char* lookup(const char* path)
     printf("dot_ptr = %s\n", dot_ptr);
     
     // create mime
-    char mime[16] = {0};
+    char* mime = malloc(17);
+    // char mime[16] = {0};
 
     // check for file extensions and strcopy MIME types
     if (dot_ptr == NULL) {
@@ -754,13 +754,15 @@ const char* lookup(const char* path)
     else {
         
         // If none of the above
+        // free(mime);
         return NULL;
         
     }
     
     // create and return mime_ptr
-    const char* mime_ptr = mime;
-    return mime_ptr;
+    // const char* mime_ptr = mime;
+    // free(mime);
+    return mime;
     
 }
 
