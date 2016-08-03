@@ -706,8 +706,7 @@ const char* lookup(const char* path)
 {
     // use strrchr() to find last . (ASCII 46) in path
     char* dot_ptr = strrchr(path, 46);
-    printf("dot_ptr = %s\n", dot_ptr);
-    
+
     // create mime
     char* mime = malloc(17);
     // char mime[16] = {0};
@@ -839,7 +838,6 @@ bool parse(const char* line, char* path, char* query)
     if (question_ptr == NULL) {
         // path = target;
         strcpy(path, target);
-        printf("%s\n", path);
         free(target);
         return true;
     }
