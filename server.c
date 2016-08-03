@@ -666,16 +666,10 @@ bool load(FILE* file, BYTE** content, size_t* length)
     // Creade index counter
     int index = 0;
     
-    // The strcat below doesn't work with non-text files (i.e. jpg...); maybe sprintf?
-    
     // Read file to file_contents
     while (fread(&read_byte_buffer, sizeof(BYTE), 1, file) == 1) {
         
-        // Null terminate read_byte_buffer
-        // read_byte_buffer[1] = '\0';
-        
         // Add buffer to contents
-        // strcat(file_contents, read_byte_buffer);
         *(file_contents + index) = read_byte_buffer;
         
         // Increment the index
@@ -687,12 +681,15 @@ bool load(FILE* file, BYTE** content, size_t* length)
     }
     
     if (file_contents != NULL) {
+
         // Assign file_contents pointer to *content
         *content = file_contents;
-        // free(file_contents);
+
         // Assign index + 1 to length
         *length = index + 1;
+
         return true;
+
     }
     
     else {
