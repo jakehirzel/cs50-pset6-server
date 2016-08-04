@@ -462,35 +462,39 @@ char* indexes(const char* path)
     }
     
     // Create strings to potential index pages
-    char* index_html = malloc(strlen(full_path) + 12);
-    index_html = strcat(full_path, "index.html\0");
+    char* index_html = calloc(1, strlen(full_path) + 12);
+    strcat(index_html, full_path);
+    strcat(index_html, "index.html\0");
+    // index_html = strcat(full_path, "index.html\0");
 
-    char* index_php = malloc(strlen(full_path) + 12);
-    index_php = strcat(full_path, "index.php\0");
+    char* index_php = calloc(1, strlen(full_path) + 12);
+    strcat(index_php, full_path);
+    strcat(index_php, "index.php\0");
+    // index_php = strcat(full_path, "index.php\0");
 
     // Look for index.html
     if (access(index_html, R_OK) == 0) {
         // Set full_path to include index and return
         full_path = index_html;
-        // free(index_html);
-        // free(index_php);
-        // free(full_path);
+        free(index_html);
+        free(index_php);
+        free(full_path);
         return full_path;
     }
     
     else if (access(index_php, R_OK) == 0) {
         // Set full_path to include index and return
         full_path = index_php;
-        // free(index_html);
-        // free(index_php);
-        // free(full_path);
+        free(index_html);
+        free(index_php);
+        free(full_path);
         return full_path;
     }
     
     else {
-        // free(index_html);
-        // free(index_php);
-        // free(full_path);
+        free(index_html);
+        free(index_php);
+        free(full_path);
         return NULL;
     }
 }
@@ -750,14 +754,13 @@ const char* lookup(const char* path)
     else {
         
         // If none of the above
-        // free(mime);
+        free(mime);
         return NULL;
         
     }
     
-    // create and return mime_ptr
-    // const char* mime_ptr = mime;
-    // free(mime);
+    // Return mime
+    free(mime);
     return mime;
     
 }
