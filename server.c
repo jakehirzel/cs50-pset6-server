@@ -457,19 +457,19 @@ char* indexes(const char* path)
         full_path = strcat(full_path, path);
     }
     else {
-        full_path = strcat(full_path, "/");
         full_path = strcat(full_path, path);
+        full_path = strcat(full_path, "/");
     }
     
     // Create strings to potential index pages
-    char* index_html = calloc(1, strlen(full_path) + 12);
+    char* index_html = calloc(strlen(full_path) + 12, 1);
     strcat(index_html, full_path);
-    strcat(index_html, "index.html\0");
+    strcat(index_html, "index.html");
     // index_html = strcat(full_path, "index.html\0");
 
-    char* index_php = calloc(1, strlen(full_path) + 12);
+    char* index_php = calloc(strlen(full_path) + 12, 1);
     strcat(index_php, full_path);
-    strcat(index_php, "index.php\0");
+    strcat(index_php, "index.php");
     // index_php = strcat(full_path, "index.php\0");
 
     // Look for index.html
@@ -478,7 +478,7 @@ char* indexes(const char* path)
         full_path = index_html;
         free(index_html);
         free(index_php);
-        free(full_path);
+        // free(full_path);
         return full_path;
     }
     
@@ -487,14 +487,14 @@ char* indexes(const char* path)
         full_path = index_php;
         free(index_html);
         free(index_php);
-        free(full_path);
+        // free(full_path);
         return full_path;
     }
     
     else {
         free(index_html);
         free(index_php);
-        free(full_path);
+        // free(full_path);
         return NULL;
     }
 }
@@ -662,42 +662,63 @@ bool load(FILE* file, BYTE** content, size_t* length)
 {
     
     // Create temporary variable to buffer the reads
-    BYTE read_byte_buffer = 0;
+    // BYTE read_byte_buffer = 0;
+    int buffer = 0;
     
     // Create pointer to store file contents
-    BYTE* file_contents = calloc(0, 0);
+    BYTE* file_contents = calloc(1, 1);
     
     // Create index counter
     int index = 0;
     
     // Read file to file_contents
-    while (fread(&read_byte_buffer, sizeof(BYTE), 1, file) == 1) {
+    while ((buffer = fgetc(file)) != EOF) {
         
-        // Extend file_contents via realloc
-        file_contents = realloc(file_contents, index + 1);
-
+        // Get the next character
+        // buffer = fgetc(file);
+        
         // Add buffer to contents
-        *(file_contents + index) = read_byte_buffer;
+        *(file_contents + index) = buffer;
+        // file_contents[index] =  buffer;
         
         // Increment the index
         index++;
         
+        // Extend file_contents
+        file_contents = realloc(file_contents, index + 1);
+        
     }
     
+    // while (fread(&read_byte_buffer, sizeof(BYTE), 1, file) == 1) {
+        
+    //     // Extend file_contents via realloc
+    //     file_contents = realloc(file_contents, index + 1);
+
+    //     // Add buffer to contents
+    //     *(file_contents + index) = read_byte_buffer;
+        
+    //     // Increment the index
+    //     index++;
+        
+    // }
+    
     if (file_contents != NULL) {
+        
+        // Write EOF
+        // *(file_contents + index) = buffer;
 
         // Assign file_contents pointer to *content
         *content = file_contents;
+        // memcpy(*content, file_contents, index + 1);
 
         // Assign index + 1 to length
-        *length = index + 1;
+        *length = index;
 
         return true;
 
     }
     
     else {
-        // free(file_contents);
         return false;
     }
     
@@ -708,6 +729,11 @@ bool load(FILE* file, BYTE** content, size_t* length)
  */
 const char* lookup(const char* path)
 {
+    // Return NULL if no path
+    if (strlen(path) == 0) {
+        return NULL;
+    }
+    
     // use strrchr() to find last . (ASCII 46) in path
     char* dot_ptr = strrchr(path, 46);
 
@@ -760,7 +786,7 @@ const char* lookup(const char* path)
     }
     
     // Return mime
-    free(mime);
+    // free(mime);
     return mime;
     
 }
