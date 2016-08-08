@@ -449,54 +449,83 @@ char* indexes(const char* path)
         return NULL;
     }
     
-    // Make a new string to hold the edited path with room for /, file, and \0
-    char* full_path = calloc(strlen(path) + 12, 1);
-    
-    // strcat path to full_path adding / at end if needed
-    if (path[strlen(path) - 1] == '/') {
-        full_path = strcat(full_path, path);
+    // Check for index.html
+    char* index_html_path = calloc(strlen(path) + 11, 1);
+    index_html_path = strcat(index_html_path, path);
+    if (path[strlen(path) - 1] != '/') {
+        index_html_path = strcat(index_html_path, "/");
+    }
+    index_html_path = strcat(index_html_path, "index.html");
+    if (access(index_html_path, R_OK) == 0) {
+        return index_html_path;
     }
     else {
-        full_path = strcat(full_path, path);
-        full_path = strcat(full_path, "/");
+        free(index_html_path);
     }
     
-    // Create strings to potential index pages
-    char* index_html = calloc(strlen(full_path) + 12, 1);
-    strcat(index_html, full_path);
-    strcat(index_html, "index.html");
-    // index_html = strcat(full_path, "index.html\0");
-
-    char* index_php = calloc(strlen(full_path) + 12, 1);
-    strcat(index_php, full_path);
-    strcat(index_php, "index.php");
-    // index_php = strcat(full_path, "index.php\0");
-
-    // Look for index.html
-    if (access(index_html, R_OK) == 0) {
-        // Set full_path to include index and return
-        full_path = index_html;
-        free(index_html);
-        free(index_php);
-        // free(full_path);
-        return full_path;
+    // Check for index.php
+    char* index_php_path = calloc(strlen(path) + 10, 1);
+    index_php_path = strcat(index_php_path, path);
+    if (path[strlen(path) - 1] != '/') {
+        index_php_path = strcat(index_php_path, "/");
     }
-    
-    else if (access(index_php, R_OK) == 0) {
-        // Set full_path to include index and return
-        full_path = index_php;
-        free(index_html);
-        free(index_php);
-        // free(full_path);
-        return full_path;
+    index_php_path = strcat(index_php_path, "index.php");
+    if (access(index_php_path, R_OK) == 0) {
+        return index_php_path;
     }
-    
     else {
-        free(index_html);
-        free(index_php);
-        // free(full_path);
         return NULL;
     }
+
+    // // Make a new string to hold the edited path with room for /, file, and \0
+    // char* full_path = calloc(strlen(path) + 12, 1);
+    
+    // // strcat path to full_path adding / at end if needed
+    // if (path[strlen(path) - 1] == '/') {
+    //     full_path = strcat(full_path, path);
+    // }
+    // else {
+    //     full_path = strcat(full_path, path);
+    //     full_path = strcat(full_path, "/");
+    // }
+    
+    // // Create strings to potential index pages
+    // char* index_html = calloc(strlen(full_path) + 12, 1);
+    // strcat(index_html, full_path);
+    // strcat(index_html, "index.html");
+    // // index_html = strcat(full_path, "index.html\0");
+
+    // char* index_php = calloc(strlen(full_path) + 12, 1);
+    // strcat(index_php, full_path);
+    // strcat(index_php, "index.php");
+    // // index_php = strcat(full_path, "index.php\0");
+
+    // // Look for index.html
+    // if (access(index_html, R_OK) == 0) {
+    //     // Set full_path to include index and return
+    //     full_path = index_html;
+    //     free(index_html);
+    //     free(index_php);
+    //     // free(full_path);
+    //     return full_path;
+    // }
+    
+    // else if (access(index_php, R_OK) == 0) {
+    //     // Set full_path to include index and return
+    //     full_path = index_php;
+    //     free(index_html);
+    //     free(index_php);
+    //     // free(full_path);
+    //     return full_path;
+    // }
+    
+    // else {
+    //     free(index_html);
+    //     free(index_php);
+    //     // free(full_path);
+    //     return NULL;
+    // }
+
 }
 
 /**
